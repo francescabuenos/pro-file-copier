@@ -76,33 +76,49 @@ export async function getDiagnostics(): Promise<DiagnosticsMap> {
         const allDiagnostics: DiagnosticsMap = {};
 
         // --- Run Lint Command ---
-        if (lintScript) {
-            try {
-                // Corrected: Used backticks (`) for template literal string.
-                const command = `${runPrefix} lint`;
-                const output = await runCommand(command, root.uri.fsPath);
-
-                // This parsing logic is generic. It assumes linter output includes file paths on lines with errors.
-                // It might need adjustment for specific linter formats.
-                const lines = output.split('\n');
-                lines.forEach(line => {
-                    // This regex tries to find a file path at the start of a line.
-                    const filePathMatch = line.match(/^([./\w\s-]+)/);
-                    if (filePathMatch) {
-                        const potentialPath = filePathMatch[0].trim();
-                        const fullPath = path.resolve(root.uri.fsPath, potentialPath);
-                        // Verify it's a real file before adding diagnostics.
-                        if (fs.existsSync(fullPath) && !fs.lstatSync(fullPath).isDirectory()) {
-                            allDiagnostics[fullPath] = (allDiagnostics[fullPath] || '') + line + '\n';
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error('Error running lint script:', error);
-                vscode.window.showErrorMessage(`Failed to execute the 'lint' script. See console for details.`);
+ if (lintScript) {
+    try {
+        const command = `${runPrefix} lint`;
+        const output = await runCommand(command, root.uri.fsPath);
+        const lines = output.split('\n');
+        lines.forEach(line => {
+            // Improved regex for file paths
+            const filePathMatch = line.match(/([a-zA-Z0-9\/\.\-_]+\.(ts|js|tsx|jsx))\b/);
+            if (filePathMatch) {
+                const potentialPath = filePathMatch[1].trim();
+                const fullPath = path.resolve(root.uri.fsPath, potentialPath);
+                if (fs.existsSync(fullPath)) {
+                    allDiagnostics[fullPath] = (allDiagnostics[fullPath] || '') + line + '\n';
+                }
             }
-        }
+        });
+    } catch (error) {
+        console.error('Error running lint script:', error);
+        vscode.window.showErrorMessage(`Failed to execute 'lint' script. See console for details.`);
+    }
+}
 
+if (typeCheckScript) {
+    try {
+        const command = `${runPrefix} type-check`;
+        const output = await runCommand(command, root.uri.fsPath);
+        const lines = output.split('\n');
+        lines.forEach(line => {
+            // Improved regex for type errors
+            const filePathMatch = line.match(/([a-zA-Z0-9\/\.\-_]+\.(ts|tsx))\((\d+),(\d+)\)/);
+            if (filePathMatch) {
+                const relativePath = filePathMatch[1].trim();
+                const fullPath = path.resolve(root.uri.fsPath, relativePath);
+                if (fs.existsSync(fullPath)) {
+                    allDiagnostics[fullPath] = (allDiagnostics[fullPath] || '') + line + '\n';
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error running type-check script:', error);
+        vscode.window.showErrorMessage(`Failed to execute 'type-check' script. See console for details.`);
+    }
+}
         // --- Run Type-Check Command ---
         if (typeCheckScript) {
             try {

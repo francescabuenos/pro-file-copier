@@ -56,22 +56,18 @@ export async function getFilePaths(uris: vscode.Uri[]): Promise<string[]> {
     const excludeGlob = getExclusionPattern();
 
     for (const uri of uris) {
-        // Use fs.promises.stat for modern async/await syntax
-        const stats = await fs.promises.stat(uri.fsPath);
-
-        if (stats.isDirectory()) {
-            // Define the search pattern to find all files recursively within the directory
-            const searchPattern = new vscode.RelativePattern(uri, '**/*');
-
-            // Find files using the search pattern and the combined exclusion glob
-            const files = await vscode.workspace.findFiles(searchPattern, excludeGlob);
-            files.forEach((file: { fsPath: string; }) => fileSet.add(file.fsPath));
-        } else {
-            // If a single file is selected, add it directly.
-            // This implicitly bypasses the exclusion, which is the desired behavior.
-            fileSet.add(uri.fsPath);
+        try {
+            const stats = await fs.promises.stat(uri.fsPath);
+            if (stats.isDirectory()) {
+                const searchPattern = new vscode.RelativePattern(uri, '**/*');
+                const files = await vscode.workspace.findFiles(searchPattern, excludeGlob);
+                files.forEach(file => fileSet.add(file.fsPath));
+            } else {
+                fileSet.add(uri.fsPath);
+            }
+        } catch (error) {
+            console.error(`Error processing ${uri.fsPath}:`, error);
         }
     }
-
     return Array.from(fileSet);
 }

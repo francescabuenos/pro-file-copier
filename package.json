@@ -15,7 +15,11 @@
     "Other",
     "Linters"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    
+    
+    
+],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [

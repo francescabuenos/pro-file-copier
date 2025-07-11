@@ -32,6 +32,15 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getWorkspaceRoot = getWorkspaceRoot;
 exports.getFilePaths = getFilePaths;
@@ -80,25 +89,27 @@ function getExclusionPattern() {
  * @param uris An array of URIs from the explorer context menu.
  * @returns A promise that resolves to an array of absolute file paths.
  */
-async function getFilePaths(uris) {
-    const fileSet = new Set();
-    const excludeGlob = getExclusionPattern();
-    for (const uri of uris) {
-        // Use fs.promises.stat for modern async/await syntax
-        const stats = await fs.promises.stat(uri.fsPath);
-        if (stats.isDirectory()) {
-            // Define the search pattern to find all files recursively within the directory
-            const searchPattern = new vscode.RelativePattern(uri, '**/*');
-            // Find files using the search pattern and the combined exclusion glob
-            const files = await vscode.workspace.findFiles(searchPattern, excludeGlob);
-            files.forEach((file) => fileSet.add(file.fsPath));
+function getFilePaths(uris) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const fileSet = new Set();
+        const excludeGlob = getExclusionPattern();
+        for (const uri of uris) {
+            try {
+                const stats = yield fs.promises.stat(uri.fsPath);
+                if (stats.isDirectory()) {
+                    const searchPattern = new vscode.RelativePattern(uri, '**/*');
+                    const files = yield vscode.workspace.findFiles(searchPattern, excludeGlob);
+                    files.forEach(file => fileSet.add(file.fsPath));
+                }
+                else {
+                    fileSet.add(uri.fsPath);
+                }
+            }
+            catch (error) {
+                console.error(`Error processing ${uri.fsPath}:`, error);
+            }
         }
-        else {
-            // If a single file is selected, add it directly.
-            // This implicitly bypasses the exclusion, which is the desired behavior.
-            fileSet.add(uri.fsPath);
-        }
-    }
-    return Array.from(fileSet);
+        return Array.from(fileSet);
+    });
 }
 //# sourceMappingURL=file-system.js.map
