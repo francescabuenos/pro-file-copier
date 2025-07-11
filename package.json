@@ -3,9 +3,13 @@
   "displayName": "Pro File Copier",
   "description": "Advanced context menu to copy file paths, content, and diagnostics.",
   "version": "1.0.0",
-  "publisher": "E-ventor",
+  "publisher": "francesca-dev",
   "engines": {
     "vscode": "^1.85.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/francescabuenos/pro-file-copier.git"
   },
   "categories": [
     "Other",
