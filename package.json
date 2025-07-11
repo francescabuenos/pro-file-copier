@@ -1,0 +1,84 @@
+{
+  "name": "pro-file-copier",
+  "displayName": "Pro File Copier",
+  "description": "Advanced context menu to copy file paths, content, and diagnostics.",
+  "version": "1.0.0",
+  "publisher": "E-ventor",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Linters"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pro-file-copier.copyPaths",
+        "title": "Copy Relative Paths"
+      },
+      {
+        "command": "pro-file-copier.copyContent",
+        "title": "Copy Content with Headers"
+      },
+      {
+        "command": "pro-file-copier.copyContentWithDiagnostics",
+        "title": "Copy Content with Diagnostics"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "pro-file-copier.copyPaths",
+          "when": "explorerResourceIsFile || explorerResourceIsFolder",
+          "group": "9_cutcopypaste@1"
+        },
+        {
+          "command": "pro-file-copier.copyContent",
+          "when": "explorerResourceIsFile || explorerResourceIsFolder",
+          "group": "9_cutcopypaste@2"
+        },
+        {
+          "command": "pro-file-copier.copyContentWithDiagnostics",
+          "when": "explorerResourceIsFile || explorerResourceIsFolder",
+          "group": "9_cutcopypaste@3"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Pro File Copier",
+      "properties": {
+        "pro-file-copier.ignorePatterns": {
+          "type": "array",
+          "default": [
+            "**/node_modules/**",
+            "**/.git/**"
+          ],
+          "description": "An array of glob patterns to exclude files and folders."
+        },
+        "pro-file-copier.headerFormat": {
+          "type": "string",
+          "default": "// File: {path}",
+          "description": "The format for the header above each file's content. Use {path} as a placeholder."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.85.0",
+    "eslint": "^8.57.1",
+    "globals": "^16.3.0",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.36.0"
+  }
+}
